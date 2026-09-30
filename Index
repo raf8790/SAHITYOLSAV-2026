@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAHITYOLSAV 2026 - SSF Perumalabad Unit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans">
+
+    <!-- Header -->
+    <header class="bg-emerald-800 text-white p-4 shadow-md text-center">
+        <h1 class="text-2xl font-bold">SAHITYOLSAV 2026</h1>
+        <p class="text-sm">SSF PERUMALABAD UNIT</p>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto p-4">
+
+        <!-- Login / Admin Toggle Section -->
+        <div id="auth-section" class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-emerald-800">അഡ്മിൻ ലോഗിൻ</h2>
+            <div class="space-y-3">
+                <input type="text" id="username" placeholder="Username" class="w-full p-2 border rounded">
+                <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded">
+                <button onclick="adminLogin()" class="w-full bg-emerald-700 text-white p-2 rounded font-bold hover:bg-emerald-800">Login</button>
+            </div>
+            <p id="login-error" class="text-red-500 text-sm mt-2 hidden"> യൂസർനെയിം അല്ലെങ്കിൽ പാസ്‌വേഡ് തെറ്റാണ്!</p>
+        </div>
+
+        <!-- Dashboard (Hidden by default) -->
+        <div id="dashboard-section" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow">
+                <h3 class="font-bold text-lg text-slate-700">Control Panel</h3>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-1 rounded text-sm">Logout</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex flex-wrap gap-2 bg-white p-2 rounded-lg shadow">
+                <button onclick="switchTab('teams')" class="px-4 py-2 bg-slate-200 rounded font-medium tab-btn" id="btn-teams">Team & Code Letter</button>
+                <button onclick="switchTab('reg')" class="px-4 py-2 bg-slate-200 rounded font-medium tab-btn" id="btn-reg">Registration</button>
+                <button onclick="switchTab('points')" class="px-4 py-2 bg-slate-200 rounded font-medium tab-btn" id="btn-points">Point Score</button>
+                <button onclick="switchTab('poster')" class="px-4 py-2 bg-slate-200 rounded font-medium tab-btn" id="btn-poster">Result Poster</button>
+            </div>
+
+            <!-- Tab 1: Teams & Code Letters -->
+            <div id="tab-teams" class="tab-content bg-white p-6 rounded-lg shadow space-y-4">
+                <h3 class="text-lg font-bold text-slate-800">ടീമും കോഡ് ലെറ്ററും സെറ്റ് ചെയ്യുക</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="team-name" placeholder="ടീമിന്റെ പേര് (ഉദാ: Al-Badr)" class="flex-1 p-2 border rounded">
+                    <input type="text" id="team-code" placeholder="കോഡ് ലെറ്റർ (ഉദാ: A)" class="w-28 p-2 border rounded">
+                    <button onclick="addTeam()" class="bg-emerald-600 text-white px-4 py-2 rounded">Add Team</button>
+                </div>
+                <div id="team-list" class="space-y-2 mt-4"></div>
+            </div>
+
+            <!-- Tab 2: Registration & Chest Number -->
+            <div id="tab-reg" class="tab-content bg-white p-6 rounded-lg shadow space-y-4 hidden">
+                <h3 class="text-lg font-bold text-slate-800">മത്സരാർത്ഥികളുടെ രജിസ്ട്രേഷൻ & ചെസ്റ്റ് നമ്പർ</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input type="text" id="part-name" placeholder="മത്സരാർത്ഥിയുടെ പേര്" class="p-2 border rounded">
+                    <input type="text" id="part-item" placeholder="ഇനത്തിന്റെ പേര്" class="p-2 border rounded">
+                    <select id="part-team" class="p-2 border rounded"></select>
+                    <input type="text" id="part-chest" placeholder="ചെസ്റ്റ് നമ്പർ (ഉദാ: A01)" class="p-2 border rounded">
+                </div>
+                <button onclick="addParticipant()" class="bg-emerald-600 text-white px-4 py-2 rounded w-full">Register Save</button>
+                
+                <div class="mt-4 overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 border-b">
+                                <th class="p-2">Chest No</th>
+                                <th class="p-2">Name</th>
+                                <th class="p-2">Item</th>
+                                <th class="p-2">Team</th>
+                                <th class="p-2">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participant-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: Points Score -->
+            <div id="tab-points" class="tab-content bg-white p-6 rounded-lg shadow space-y-4 hidden">
+                <h3 class="text-lg font-bold text-slate-800">പോയിന്റ് സ്കോർ മാനേജ്മെന്റ്</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <select id="point-team" class="p-2 border rounded"></select>
+                    <input type="number" id="point-val" placeholder="പോയിന്റ് (ഉദാ: 5)" class="p-2 border rounded">
+                    <input type="text" id="point-reason" placeholder="വിവരണം (ഉദാ: Hifz 1st)" class="p-2 border rounded">
+                </div>
+                <button onclick="addPoints()" class="bg-emerald-600 text-white px-4 py-2 rounded w-full">Add Points</button>
+                
+                <div class="mt-4">
+                    <h4 class="font-bold mb-2">ടീം നിലവാരം (Points Table)</h4>
+                    <div id="points-summary" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Result Poster Maker -->
+            <div id="tab-poster" class="tab-content bg-white p-6 rounded-lg shadow space-y-4 hidden">
+                <h3 class="text-lg font-bold text-slate-800">റിസൾട്ട് പോസ്റ്റർ മേക്കർ</h3>
+                <div class="space-y-3">
+                    <input type="text" id="poster-item" placeholder="ഇനത്തിന്റെ പേര് (ഉദാ: Essay Writing)" class="w-full p-2 border rounded">
+                    <input type="text" id="poster-winner" placeholder="വിജയിയുടെ പേരും ടീമും (ഉദാ: അഹ്മദ് - A-Team)" class="w-full p-2 border rounded">
+                    <button onclick="generatePoster()" class="bg-emerald-600 text-white px-4 py-2 rounded w-full">പോസ്റ്റർ ഡൗൺലോഡ് ചെയ്യുക</button>
+                </div>
+
+                <!-- Poster Preview Box -->
+                <div id="poster-box" class="w-full h-64 bg-gradient-to-r from-emerald-900 to-teal-800 text-white p-6 flex flex-col justify-between rounded-lg shadow-inner relative overflow-hidden">
+                    <div>
+                        <p class="text-xs tracking-widest uppercase">SSF Perumalabad Unit</p>
+                        <h2 class="text-xl font-bold mt-1">SAHITYOLSAV 2026</h2>
+                    </div>
+                    <div class="text-center my-auto">
+                        <p id="p-item-text" class="text-sm text-emerald-200">ഇനം ഇവിടെ വരുും</p>
+                        <h1 id="p-winner-text" class="text-2xl font-extrabold mt-1">വിജയിയുടെ പേര്</h1>
+                    </div>
+                    <div class="text-right text-xs text-emerald-300">Result Announced</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- JavaScript Logic with LocalStorage (Persistent) -->
+    <script>
+        // Local Data Initialization
+        let db = JSON.parse(localStorage.getItem('sahityolsav_db')) || {
+            teams: [],
+            participants: [],
+            points: []
+        };
+
+        function saveData() {
+            localStorage.setItem('sahityolsav_db', JSON.stringify(db));
+            refreshUI();
+        }
+
+        // Login Check
+        function adminLogin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            if(u === 'prmlbdsahityolsav' && p === 'shtlsav12@26') {
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                refreshUI();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+        }
+
+        // Team Management
+        function addTeam() {
+            const name = document.getElementById('team-name').value;
+            const code = document.getElementById('team-code').value;
+            if(name && code) {
+                db.teams.push({name, code});
+                document.getElementById('team-name').value = '';
+                document.getElementById('team-code').value = '';
+                saveData();
+            }
+        }
+
+        function deleteTeam(index) {
+            db.teams.splice(index, 1);
+            saveData();
+        }
+
+        // Participant Registration
+        function addParticipant() {
+            const name = document.getElementById('part-name').value;
+            const item = document.getElementById('part-item').value;
+            const team = document.getElementById('part-team').value;
+            const chest = document.getElementById('part-chest').value;
+            if(name && item && chest) {
+                db.participants.push({name, item, team, chest});
+                document.getElementById('part-name').value = '';
+                document.getElementById('part-item').value = '';
+                document.getElementById('part-chest').value = '';
+                saveData();
+            }
+        }
+
+        function deleteParticipant(index) {
+            db.participants.splice(index, 1);
+            saveData();
+        }
+
+        // Points Management
+        function addPoints() {
+            const team = document.getElementById('point-team').value;
+            const val = parseInt(document.getElementById('point-val').value);
+            const reason = document.getElementById('point-reason').value;
+            if(team && val) {
+                db.points.push({team, val, reason});
+                document.getElementById('point-val').value = '';
+                document.getElementById('point-reason').value = '';
+                saveData();
+            }
+        }
+
+        // Refresh UI Elements
+        function refreshUI() {
+            // Teams List & Selects
+            let teamListHTML = '';
+            let teamSelectHTML = '<option value="">ടീം തിരഞ്ഞെടുക്കുക</option>';
+            
+            db.teams.forEach((t, i) => {
+                teamListHTML += `<div class="flex justify-between items-center p-2 bg-slate-50 border rounded">
+                    <span><b>${t.name}</b> (Code: ${t.code})</span>
+                    <button onclick="deleteTeam(${i})" class="text-red-500 text-sm">Delete</button>
+                </div>`;
+                teamSelectHTML += `<option value="${t.name}">${t.name} (${t.code})</option>`;
+            });
+            
+            document.getElementById('team-list').innerHTML = teamListHTML;
+            document.getElementById('part-team').innerHTML = teamSelectHTML;
+            document.getElementById('point-team').innerHTML = teamSelectHTML;
+
+            // Participants Table
+            let partHTML = '';
+            db.participants.forEach((p, i) => {
+                partHTML += `<tr class="border-b">
+                    <td class="p-2 font-bold">${p.chest}</td>
+                    <td class="p-2">${p.name}</td>
+                    <td class="p-2">${p.item}</td>
+                    <td class="p-2">${p.team}</td>
+                    <td class="p-2"><button onclick="deleteParticipant(${i})" class="text-red-500 text-sm">Delete</button></td>
+                </tr>`;
+            });
+            document.getElementById('participant-table').innerHTML = partHTML;
+
+            // Calculate & Display Points Summary
+            let totals = {};
+            db.teams.forEach(t => totals[t.name] = 0);
+            db.points.forEach(pt => {
+                if(totals[pt.team] !== undefined) totals[pt.team] += pt.val;
+                else totals[pt.team] = pt.val;
+            });
+
+            let pointsHTML = '';
+            for(let team in totals) {
+                pointsHTML += `<div class="flex justify-between p-2 bg-emerald-50 border border-emerald-200 rounded">
+                    <span>${team}</span>
+                    <span class="font-bold text-emerald-800">${totals[team]} Points</span>
+                </div>`;
+            }
+            document.getElementById('points-summary').innerHTML = pointsHTML;
+        }
+
+        // Poster Generator Script
+        function generatePoster() {
+            const item = document.getElementById('poster-item').value || "Event Name";
+            const winner = document.getElementById('poster-winner').value || "Winner Name";
+            
+            document.getElementById('p-item-text').innerText = item;
+            document.getElementById('p-winner-text').innerText = winner;
+
+            const box = document.getElementById('poster-box');
+            html2canvas(box).then(canvas => {
+                let link = document.createElement('a');
+                link.download = 'sahityolsav-result.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        // Initial call
+        refreshUI();
+    </script>
+</body>
+</html>
